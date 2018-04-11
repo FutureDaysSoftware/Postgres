@@ -51,7 +51,7 @@ module.exports = Object.create( {
         const isEnum = Boolean( this.enumReference && this.enumReference[ tableName ] && this.enumReference[ tableName ][ column.column_name ] );
               range = isEnum
                 ? this.enumReference[ tableName ][ column.column_name ]
-                : this.dataTypeToRange[column.data_type]
+                : this.DataTypeToRange[column.data_type]
         return {
             isEnum,
             isNullable: column.is_nullable,
@@ -61,16 +61,18 @@ module.exports = Object.create( {
         }
     },
 
-    reflect: async query => {
+    async reflect(query) {
         const tableData = {}
         const tables =  await query( selectAllTables );
 
-        tables.map( async row => {
+        await Promise.all(
+          tables.map( async row => {
             const tableName = row.table_name;
             const tableColumns = await query(selectTableColumns( tableName ));
             tableData[ row.table_name ] = { columns: tableColumns.map( columnRow => this.getColumnDescription(tableName, columnRow) ) }
-        });
-       
+          })
+        );
+
         (await query(selectForeignKeys))
         .forEach( row => {
             const match = /FOREIGN KEY \("?(\w+)"?\) REFERENCES (\w+)\((\w+)\)/.exec( row.pg_get_constraintdef )
@@ -88,6 +90,6 @@ module.exports = Object.create( {
             table.model = Object.create( this.Model, { } ).constructor( table.columns, { storeBy: [ 'name' ] } ) 
         } )
 
-        return { resources: tableData, resourceNames: tableNames, tables: tableData }
+        return { resources: tableData, resourceNames: tableNames, tables: tableData };
     }
-} ).reflect
+}, {} )

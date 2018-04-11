@@ -44,7 +44,7 @@ module.exports = class Postgres {
     }
 
     async reflect() {
-        const reflection = await Reflector(this.query.bind(this));
+        const reflection = await Reflector.reflect(this.query.bind(this));
         Object.assign( this, reflection );
     }
 
