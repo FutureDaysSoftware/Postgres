@@ -92,8 +92,8 @@ module.exports = class QueryBuilder {
         } )
     }
 
-    truncate( omit=[] ) {
-        return this.query( `TRUNCATE ` + this.objectNames.filter( table => !omit.includes(table) ).map( table => `"${table}"` ).join(', ') )
+    static truncate( tables ) {
+        return `TRUNCATE ` + tables.map( table => `"${table}"` ).join(', ') );
     }
 
     getSelectList( table, opts={} ) {
