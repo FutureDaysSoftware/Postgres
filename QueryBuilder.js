@@ -1,5 +1,33 @@
 module.exports = class QueryBuilder {
-    
+   
+    static getSelect( { columns, table, coalesce, columnOnly } ) {
+        return columns.map( column => {
+            let str = `"${table}"."${column}"`;
+            if(coalesce) {
+                str = `COALESCE(${str},'[Null]')`
+            }
+            const as = columnOnly 
+                ? `AS "${column}"`
+                : `AS "${table}.${column}"`
+            return `${str} ${as}`
+        } )
+        .join(', ')
+    }
+     
+    static truncate( tables ) {
+        return `TRUNCATE ` + tables.map( table => `"${table}"` ).join(', ');
+    }
+
+    getSelectList( table, opts={} ) {
+        return typeof table === 'string'
+            ? this._getSelect( table, opts.alias ? opts.alias : table )
+            : table.map( t => this._getSelect( t, opts.alias ? opts.alias[ t ] : t ) ).join(', ')
+    }
+
+    _getSelect( table, alias ) {
+        return this.tables[ table ].columns.map( column => `"${alias}"."${column.name}" as "${alias}.${column.name}"` ).join(', ')
+    }
+
     columnToVar( columns, opts={} ) {
         const baseIndex = opts.baseIndex || 1,
             join = opts.join || ', ',
@@ -92,9 +120,6 @@ module.exports = class QueryBuilder {
         } )
     }
 
-    static truncate( tables ) {
-        return `TRUNCATE ` + tables.map( table => `"${table}"` ).join(', ');
-    }
 
     getSelectList( table, opts={} ) {
         return typeof table === 'string'
