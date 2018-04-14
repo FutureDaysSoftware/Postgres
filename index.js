@@ -34,8 +34,8 @@ module.exports = class Postgres {
     CopyTo: require('pg-copy-streams').to,
     ***** */
 
-    constructor(args=undefined) {
-        this.pool = new Pg.Pool(args)
+    constructor(args={}) {
+        this.pool = new Pg.Pool({...args, ssh: true})
 
         this.pool.on('error', (err, client) => {
             console.log(`${new Date()} -- Unexpected error on idle client -- ${err.stack || err}`);
