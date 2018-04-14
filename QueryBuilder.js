@@ -93,7 +93,7 @@ module.exports = class QueryBuilder {
     }
 
     static truncate( tables ) {
-        return `TRUNCATE ` + tables.map( table => `"${table}"` ).join(', ') );
+        return `TRUNCATE ` + tables.map( table => `"${table}"` ).join(', ');
     }
 
     getSelectList( table, opts={} ) {
