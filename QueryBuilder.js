@@ -1,4 +1,13 @@
 module.exports = class QueryBuilder {
+
+    static columnToVar( columns, opts={} ) {
+        const baseIndex = opts.baseIndex || 1,
+            join = opts.join || ', ',
+            alias = opts.alias ? `"${opts.alias}".` : ``
+        return columns.length
+            ? columns.map( ( key, i ) => `${alias}"${key}" = $${ i + baseIndex }` ).join( join ) 
+            : ''
+    }
    
     static getSelect( { columns, table, coalesce, columnOnly } ) {
         return columns.map( column => {
@@ -13,10 +22,45 @@ module.exports = class QueryBuilder {
         } )
         .join(', ')
     }
+
+    static getValue( column, data ) {
+        //TODO: validate?
+        return column.range === 'Geography'
+            ? [ data[0], data[1] ]
+            : data
+    }
+
+    static getVar( column, data, index ) {
+        const vars = column.range === 'Geography'
+            ? `ST_Makepoint( $${index++}, $${index++} )`
+            : column.range === 'Array' || ( column.isEnum && Array.isArray( column.range ) )
+                ? `ARRAY[ ` + data.map( datum => `$${index++}` ).join(', ') + ` ]`
+                : `$${index++}`
+        return { vars, index }
+    }
+
+    static getVarsValues( table, data, keys, opts={} ) {
+        const tableModel = this.tables[ table ].model
+        let index = opts.baseIndex || 1
+
+        return keys.reduce( ( memo, key ) => {
+            const column = tableModel.store.name[ key ],
+                datum = data[ key ],
+                varResult = this.getVar( column, datum, index )
+
+            index = varResult.index
+            memo.vars = memo.vars.concat( varResult.vars )
+            memo.vals = memo.vals.concat( this.getValue( column, datum ) )
+
+            return memo
+        }, { vars: [ ], vals: [ ] } )
+    }
      
     static truncate( tables ) {
         return `TRUNCATE ` + tables.map( table => `"${table}"` ).join(', ');
     }
+
+    static wrap( something ) { return `"${something}"` }
 
     getSelectList( table, opts={} ) {
         return typeof table === 'string'

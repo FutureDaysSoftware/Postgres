@@ -1,4 +1,5 @@
 const Pg = require('pg');
+const QueryBuilder = require('./QueryBuilder');
 const Reflector = require('./Reflector');
 
 module.exports = class Postgres {
@@ -41,6 +42,28 @@ module.exports = class Postgres {
             console.log(`${new Date()} -- Unexpected error on idle client -- ${err.stack || err}`);
             //process.exit(-1)
         });
+    }
+
+    async insert( name, data, opts={} ) {
+        const keys = Object.keys( data ),
+            columns = keys.map( QueryBuilder.wrap ).join(', '),
+            nullColumns = this.resourceNames[ name ].columns.filter( column => !columns.includes( column.name ) ).map( column => column.name ),
+            nullColumnsStr = nullColumns.length ? `, ${nullColumns.map( QueryBuilder.wrap ).join(', ')}` : '',
+            nullVals = nullColumns.length ? `, ${nullColumns.map( column => `NULL` ).join(', ')}` : '',
+            queryData = QueryBuilder.getVarsValues( name, data, keys )
+        
+        let upsert = ``,
+            upsertVals = [ ]
+            
+        if( opts.upsert ) {
+            const upsertKeys = Object.keys( opts.upsert ),
+                whereClause = `WHERE ${QueryBuilder.columnToVar( upsertKeys, { alias: name, baseIndex: queryData.vals.length + 1, join: ' AND ' } )}`
+
+            upsert = `ON CONFLICT ( ${upsertKeys.map( key => `"${key}"` ).join(', ')} ) DO UPDATE SET ( ${columns}${nullColumnsStr} ) = ( ${queryData.vars.join(', ')}${nullVals} ) ${whereClause} `
+            upsertVals = upsertKeys.map( key => opts.upsert[ key ] )
+        }
+
+        return this.query( `INSERT INTO ${name} ( ${columns} ) VALUES ( ${ queryData.vars.join(', ') } ) ${upsert} RETURNING ${this._getSimpleSelect(name)}`, queryData.vals.concat( upsertVals ) )
     }
 
     async reflect() {
