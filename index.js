@@ -36,7 +36,7 @@ module.exports = class Postgres {
     ***** */
 
     constructor(args={}) {
-        this.pool = new Pg.Pool({...args, ssl: true})
+        this.pool = new Pg.Pool({...args})
 
         this.pool.on('error', (err, client) => {
             console.log(`${new Date()} -- Unexpected error on idle client -- ${err.stack || err}`);
