@@ -50,7 +50,7 @@ module.exports = class Postgres {
             nullColumns = this.resources[ name ].columns.filter( column => !columns.includes( column.name ) ).map( column => column.name ),
             nullColumnsStr = nullColumns.length ? `, ${nullColumns.map( QueryBuilder.wrap ).join(', ')}` : '',
             nullVals = nullColumns.length ? `, ${nullColumns.map( column => `NULL` ).join(', ')}` : '',
-            queryData = QueryBuilder.getVarsValues( name, data, keys )
+            queryData = QueryBuilder.getVarsValues( this.resources[name].model, data, keys )
         
         let upsert = ``,
             upsertVals = [ ]

@@ -39,8 +39,7 @@ module.exports = class QueryBuilder {
         return { vars, index }
     }
 
-    static getVarsValues( table, data, keys, opts={} ) {
-        const tableModel = this.tables[ table ].model
+    static getVarsValues( tableModel, data, keys, opts={} ) {
         let index = opts.baseIndex || 1
 
         return keys.reduce( ( memo, key ) => {
