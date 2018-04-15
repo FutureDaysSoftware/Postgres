@@ -47,7 +47,7 @@ module.exports = class Postgres {
     async insert( name, data, opts={} ) {
         const keys = Object.keys( data ),
             columns = keys.map( QueryBuilder.wrap ).join(', '),
-            nullColumns = this.resourceNames[ name ].columns.filter( column => !columns.includes( column.name ) ).map( column => column.name ),
+            nullColumns = this.resources[ name ].columns.filter( column => !columns.includes( column.name ) ).map( column => column.name ),
             nullColumnsStr = nullColumns.length ? `, ${nullColumns.map( QueryBuilder.wrap ).join(', ')}` : '',
             nullVals = nullColumns.length ? `, ${nullColumns.map( column => `NULL` ).join(', ')}` : '',
             queryData = QueryBuilder.getVarsValues( name, data, keys )
