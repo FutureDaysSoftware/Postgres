@@ -23,7 +23,7 @@ module.exports = class QueryBuilder {
         .join(', ')
     }
 
-    static getSimpleSelect( tableName ) { return this.resources[ tableName ].columns.map( column => `"${column.name}"` ).join(', ') }
+    static getSimpleSelect( table ) { return table.columns.map( column => `"${column.name}"` ).join(', ') }
 
     static getValue( column, data ) {
         //TODO: validate?

@@ -47,7 +47,8 @@ module.exports = class Postgres {
     async insert( name, data, opts={} ) {
         const keys = Object.keys( data ),
             columns = keys.map( QueryBuilder.wrap ).join(', '),
-            nullColumns = this.resources[ name ].columns.filter( column => !columns.includes( column.name ) ).map( column => column.name ),
+            table = this.resources[ name ],
+            nullColumns = table.columns.filter( column => !columns.includes( column.name ) ).map( column => column.name ),
             nullColumnsStr = nullColumns.length ? `, ${nullColumns.map( QueryBuilder.wrap ).join(', ')}` : '',
             nullVals = nullColumns.length ? `, ${nullColumns.map( column => `NULL` ).join(', ')}` : '',
             queryData = QueryBuilder.getVarsValues( this.resources[name].model, data, keys )
@@ -63,7 +64,7 @@ module.exports = class Postgres {
             upsertVals = upsertKeys.map( key => opts.upsert[ key ] )
         }
 
-        return this.query( `INSERT INTO ${name} ( ${columns} ) VALUES ( ${ queryData.vars.join(', ') } ) ${upsert} RETURNING ${QueryBuilder.getSimpleSelect(name)}`, queryData.vals.concat( upsertVals ) )
+        return this.query( `INSERT INTO ${name} ( ${columns} ) VALUES ( ${ queryData.vars.join(', ') } ) ${upsert} RETURNING ${QueryBuilder.getSimpleSelect(table.columns)}`, queryData.vals.concat( upsertVals ) )
     }
 
     async reflect() {
