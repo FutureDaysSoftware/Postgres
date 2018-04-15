@@ -23,6 +23,8 @@ module.exports = class QueryBuilder {
         .join(', ')
     }
 
+    static getSimpleSelect( tableName ) { return this.resources[ tableName ].columns.map( column => `"${column.name}"` ).join(', ') }
+
     static getValue( column, data ) {
         //TODO: validate?
         return column.range === 'Geography'
@@ -44,8 +46,10 @@ module.exports = class QueryBuilder {
 
         return keys.reduce( ( memo, key ) => {
             const column = tableModel.store.name[ key ],
-                datum = data[ key ],
-                varResult = this.getVar( column, datum, index )
+                datum = data[ key ];
+
+            if( !column ) { throw new Error(`${key} column not found!`) }
+            const varResult = this.getVar( column, datum, index )
 
             index = varResult.index
             memo.vars = memo.vars.concat( varResult.vars )
