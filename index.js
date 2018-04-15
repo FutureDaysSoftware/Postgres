@@ -64,7 +64,7 @@ module.exports = class Postgres {
             upsertVals = upsertKeys.map( key => opts.upsert[ key ] )
         }
 
-        return this.query( `INSERT INTO ${name} ( ${columns} ) VALUES ( ${ queryData.vars.join(', ') } ) ${upsert} RETURNING ${QueryBuilder.getSimpleSelect(table)}`, queryData.vals.concat( upsertVals ) )
+        return this.query( `INSERT INTO "${name}" ( ${columns} ) VALUES ( ${ queryData.vars.join(', ') } ) ${upsert} RETURNING ${QueryBuilder.getSimpleSelect(table)}`, queryData.vals.concat( upsertVals ) )
     }
 
     async reflect() {
